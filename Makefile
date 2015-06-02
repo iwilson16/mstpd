@@ -1,8 +1,15 @@
 MODE = devel
 version := 0.03
 
-DSOURCES = main.c epoll_loop.c brmon.c bridge_track.c libnetlink.c mstp.c \
-           packet.c netif_utils.c ctl_socket_server.c hmac_md5.c driver_deps.c
+DSOURCES = main.c epoll_loop.c bridge_track.c mstp.c \
+           packet.c ctl_socket_server.c hmac_md5.c
+
+ifeq ($(SWITCH_BACKEND),1)
+  CFLAGS += -DSWITCH_BACKEND
+  DSOURCES += switch_deps.c
+else
+  DSOURCES += brmon.c libnetlink.c netif_utils.c driver_deps.c
+endif
 
 DOBJECTS = $(DSOURCES:.c=.o)
 

@@ -40,7 +40,16 @@
 
 static int get_index_die(const char *ifname, const char *doc, bool die)
 {
+#ifdef SWITCH_BACKEND
+    int r;
+
+    if (!strncmp(doc, "bridge", sizeof("bridge")))
+        r = switch_get_index(ifname);
+    else if (!strncmp(doc, "port", sizeof("port")))
+        r = switch_get_port_index(ifname);
+#else
     int r = if_nametoindex(ifname);
+#endif
     if(0 == r)
     {
         fprintf(stderr,
@@ -282,6 +291,31 @@ static int do_showbridge(const char *br_name, param_id_t param_id)
     return 0;
 }
 
+#ifdef SWITCH_BACKEND
+int get_bridge_list(struct dirent ***namelist)
+{
+    int i, names_count = 0;
+    char **names = NULL;
+
+    if ((names_count = switch_get_list(&names)) < 0) {
+        fprintf(stderr, "Error getting list of switches\n");
+        return -1;
+    }
+    if (!names_count) {
+        fprintf(stderr, "No switches found\n");
+        return -1;
+    }
+
+    /* names will be free'd by this function */
+    if (switch_names_to_dirents(names, namelist, names_count) < 0) {
+        fprintf(stderr, "Error converting list of switches to dirent\n");
+        return -1;
+    }
+
+    return names_count;
+}
+
+#else /* !SWITCH_BACKEND */
 #define SYSFS_PATH_MAX 256
 #ifndef SYSFS_CLASS_NET
 #define SYSFS_CLASS_NET "/sys/class/net"
@@ -306,6 +340,7 @@ static inline int get_bridge_list(struct dirent ***namelist)
 {
     return scandir(SYSFS_CLASS_NET, namelist, isbridge, sorting_func);
 }
+#endif
 
 static int cmd_showbridge(int argc, char *const *argv)
 {
@@ -697,6 +732,29 @@ static int not_dot_dotdot(const struct dirent *entry)
 
 static int get_port_list(const char *br_ifname, struct dirent ***namelist)
 {
+#ifdef SWITCH_BACKEND
+    int i, names_count = 0;
+    char **names = NULL;
+
+    if ((names_count = switch_get_port_names(br_ifname, &names)) < 0) {
+        fprintf(stderr, "Error getting list of all ports of switch %s\n",
+                br_ifname);
+        return -1;
+    }
+    if (!names_count) {
+        fprintf(stderr, "Switch %s has no ports\n", br_ifname);
+        return -1;
+    }
+
+    /* names will be free'd by this function */
+    if (switch_names_to_dirents(names, namelist, names_count) < 0) {
+        fprintf(stderr, "Error converting list of ports to dirent for %s\n",
+                br_ifname);
+        return -1;
+    }
+
+    return names_count;
+#else
     int res;
     char buf[SYSFS_PATH_MAX];
 
@@ -705,6 +763,7 @@ static int get_port_list(const char *br_ifname, struct dirent ***namelist)
         fprintf(stderr, "Error getting list of all ports of bridge %s\n",
                 br_ifname);
     return res;
+#endif
 }
 
 static int cmd_showport(int argc, char *const *argv)
@@ -760,7 +819,6 @@ static int cmd_showport(int argc, char *const *argv)
             free(namelist[i]);
         free(namelist);
     }
-
     return r;
 }
 

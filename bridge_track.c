@@ -261,6 +261,7 @@ static void set_if_up(port_t *prt, bool up)
                                 prt->sysdeps.duplex);
 }
 
+#ifndef SWITCH_BACKEND
 /* br_index == if_index means: interface is bridge master */
 int bridge_notify(int br_index, int if_index, bool newlink, unsigned flags)
 {
@@ -344,6 +345,7 @@ int bridge_notify(int br_index, int if_index, bool newlink, unsigned flags)
     }
     return 0;
 }
+#endif
 
 struct llc_header
 {
@@ -407,6 +409,7 @@ void bridge_bpdu_rcv(int if_index, const unsigned char *data, int len)
                     (bpdu_t *)(data + sizeof(*h)), l - LLC_PDU_LEN_U);
 }
 
+#ifndef SWITCH_BACKEND
 static int br_set_state(struct rtnl_handle *rth, unsigned ifindex, __u8 state)
 {
     struct
@@ -454,6 +457,7 @@ static int br_set_ageing_time(char *brname, unsigned int ageing_time)
     TST(len == write_result, -1);
     return 0;
 }
+#endif
 
 /* External actions for MSTP protocol */
 
@@ -490,6 +494,7 @@ void MSTP_OUT_set_state(per_tree_port_t *ptp, int new_state)
     }
     INFO_MSTINAME(br, prt, ptp, "entering %s state", state_name);
 
+#ifndef SWITCH_BACKEND
     /* Translate new CIST state to the kernel bridge code */
     if(0 == ptp->MSTID)
     { /* CIST */
@@ -500,6 +505,7 @@ void MSTP_OUT_set_state(per_tree_port_t *ptp, int new_state)
                               state_name);
         }
     }
+#endif
 }
 
 /* This function initiates process of flushing
@@ -513,6 +519,7 @@ void MSTP_OUT_flush_all_fids(per_tree_port_t * ptp)
     port_t *prt = ptp->port;
     bridge_t *br = prt->bridge;
 
+#ifndef SWITCH_BACKEND
     /* Translate CIST flushing to the kernel bridge code */
     if(0 == ptp->MSTID)
     { /* CIST */
@@ -520,6 +527,7 @@ void MSTP_OUT_flush_all_fids(per_tree_port_t * ptp)
             ERROR_PRTNAME(br, prt,
                           "Couldn't flush kernel bridge forwarding database");
     }
+#endif
     /* Completion signal MSTP_IN_all_fids_flushed will be called by driver */
     INFO_MSTINAME(br, prt, ptp, "Flushing forwarding database");
     driver_flush_all_fids(ptp);
@@ -533,6 +541,7 @@ void MSTP_OUT_set_ageing_time(port_t *prt, unsigned int ageingTime)
     actual_ageing_time = driver_set_ageing_time(prt, ageingTime);
     INFO_PRTNAME(br, prt, "Setting new ageing time to %u", actual_ageing_time);
 
+#ifndef SWITCH_BACKEND
     /*
      * Translate new ageing time to the kernel bridge code.
      * Kernel bridging code does not support per-port ageing time,
@@ -540,6 +549,7 @@ void MSTP_OUT_set_ageing_time(port_t *prt, unsigned int ageingTime)
      */
     if(0 > br_set_ageing_time(br->sysdeps.name, actual_ageing_time))
         ERROR_BRNAME(br, "Couldn't set new ageing time in kernel bridge");
+#endif
 }
 
 void MSTP_OUT_tx_bpdu(port_t *prt, bpdu_t * bpdu, int size)
