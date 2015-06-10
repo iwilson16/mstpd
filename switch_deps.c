@@ -101,11 +101,12 @@ char *index_to_port_name(int index, char *name)
 
 int driver_mstp_init()
 {
-    return 0;
+    return switch_init();
 }
 
 void driver_mstp_fini()
 {
+    switch_fini();
 }
 
 bool driver_create_bridge(bridge_t *br, __u8 *macaddr)
