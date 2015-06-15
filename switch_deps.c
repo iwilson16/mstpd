@@ -20,7 +20,6 @@
 #include "mstp.h"
 
 #include <libxsw.h>
-static int mstp_refcount = 0;
 
 static const enum STP_PORT_STATE br_to_switch_port_states[] =
 {
