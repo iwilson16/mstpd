@@ -28,6 +28,9 @@
 #include <errno.h>
 #include <limits.h>
 #include <sys/stat.h>
+#ifdef SWITCH_BACKEND
+#include <libxsw.h>
+#endif
 
 #include "ctl_socket_client.h"
 #include "log.h"
@@ -294,7 +297,7 @@ static int do_showbridge(const char *br_name, param_id_t param_id)
 #ifdef SWITCH_BACKEND
 int get_bridge_list(struct dirent ***namelist)
 {
-    int i, names_count = 0;
+    int names_count = 0;
     char **names = NULL;
 
     if ((names_count = switch_get_list(&names)) < 0) {
@@ -723,17 +726,19 @@ static int do_showport(int br_index, const char *bridge_name,
     return 0;
 }
 
+#ifndef SWITCH_BACKEND
 static int not_dot_dotdot(const struct dirent *entry)
 {
     const char *n = entry->d_name;
 
     return !('.' == n[0] && (0 == n[1] || ('.' == n[1] && 0 == n[2])));
 }
+#endif
 
 static int get_port_list(const char *br_ifname, struct dirent ***namelist)
 {
 #ifdef SWITCH_BACKEND
-    int i, names_count = 0;
+    int names_count = 0;
     char **names = NULL;
 
     if ((names_count = switch_get_port_names(br_ifname, &names)) < 0) {
