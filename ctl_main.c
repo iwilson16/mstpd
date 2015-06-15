@@ -297,7 +297,7 @@ static int do_showbridge(const char *br_name, param_id_t param_id)
 #ifdef SWITCH_BACKEND
 int get_bridge_list(struct dirent ***namelist)
 {
-    int i, names_count = 0;
+    int names_count = 0;
     char **names = NULL;
 
     if ((names_count = switch_get_list(&names)) < 0) {
@@ -738,7 +738,7 @@ static int not_dot_dotdot(const struct dirent *entry)
 static int get_port_list(const char *br_ifname, struct dirent ***namelist)
 {
 #ifdef SWITCH_BACKEND
-    int i, names_count = 0;
+    int names_count = 0;
     char **names = NULL;
 
     if ((names_count = switch_get_port_names(br_ifname, &names)) < 0) {
