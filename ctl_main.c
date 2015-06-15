@@ -28,6 +28,9 @@
 #include <errno.h>
 #include <limits.h>
 #include <sys/stat.h>
+#ifdef SWITCH_BACKEND
+#include <libxsw.h>
+#endif
 
 #include "ctl_socket_client.h"
 #include "log.h"
