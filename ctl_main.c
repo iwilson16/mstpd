@@ -726,12 +726,14 @@ static int do_showport(int br_index, const char *bridge_name,
     return 0;
 }
 
+#ifndef SWITCH_BACKEND
 static int not_dot_dotdot(const struct dirent *entry)
 {
     const char *n = entry->d_name;
 
     return !('.' == n[0] && (0 == n[1] || ('.' == n[1] && 0 == n[2])));
 }
+#endif
 
 static int get_port_list(const char *br_ifname, struct dirent ***namelist)
 {
